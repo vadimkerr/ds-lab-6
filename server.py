@@ -18,10 +18,23 @@ def is_filename_received(data):
 
 
 def get_filename(data):
-    return data.decode().split(FILENAME_PREFIX)[1]
+    filename = data.decode().split(FILENAME_PREFIX)[1]
+
+    filename_without_extension = Path(filename).stem
+    extension = Path(filename).suffix
+
+    duplicates = UPLOAD_DIR.rglob(f"{filename_without_extension}*{extension}")
+    num_duplicates = len(list(duplicates))
+
+    if num_duplicates > 0:
+        filename = f"{filename_without_extension}_copy{num_duplicates}{extension}"
+
+    return filename
 
 
 def open_file(filename, connection):
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
     path = UPLOAD_DIR / filename
     files[connection] = open(path, "wb")
 
